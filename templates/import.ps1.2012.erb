@@ -8,3 +8,9 @@ if ($type -eq 'PFX') {
 } else {
   Import-Certificate -CertStoreLocation Cert:\<%= @root_store -%>\<%= @store_dir -%> -FilePath <%= @location %>\<%= @name %>
 }
+
+if (Test-Path Cert:\<%= @root_store -%>\<%= @store_dir -%>\<%= @fingerprint -%>) {
+  exit 1
+} else {
+  exit 0
+}
