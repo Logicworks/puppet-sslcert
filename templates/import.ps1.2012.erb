@@ -9,7 +9,7 @@ if ($type -eq 'PFX') {
   $suppressed_output = Import-Certificate -CertStoreLocation Cert:\<%= @root_store -%>\<%= @store_dir -%> -FilePath <%= @location %>\<%= @name %>
 }
 
-if (Test-Path Cert:\<%= @root_store -%>\<%= @store_dir -%>\<%= @fingerprint -%>) {
+if (Test-Path Cert:\<%= @root_store -%>\<%= @store_dir -%>\<%= @thumbprint -%>) {
   exit 0
 } else {
   exit 1
