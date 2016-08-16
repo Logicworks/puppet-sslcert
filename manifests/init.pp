@@ -80,6 +80,14 @@ define sslcertificate(
         require            => File[$script_dir],
         source_permissions => ignore
       }
+
+      exec { "Install-${name}-SSLCert":
+        provider  => powershell,
+        command   => "${script_dir}/import-${name}.ps1",
+        unless    => "if (! Test-Path Cert:\\${root_store}\\${store_dir}\\${thumbprint}) { exit 1 }",
+        logoutput => true,
+        require   => [ File["inspect-${name}-certificate.ps1"], File["import-${name}-certificate.ps1"] ],
+      }
     }
     '2008', '2008 R2': {
       file { "inspect-${name}-certificate.ps1" :
@@ -97,17 +105,17 @@ define sslcertificate(
         require            => File[$script_dir],
         source_permissions => ignore
       }
+
+      exec { "Install-${name}-SSLCert":
+        provider  => powershell,
+        command   => "${script_dir}/import-${name}.ps1",
+        onlyif    => "${script_dir}/inspect-${name}.ps1",
+        logoutput => true,
+        require   => [ File["inspect-${name}-certificate.ps1"], File["import-${name}-certificate.ps1"] ],
+      }
     }
     default: {
       fail("Unsupported Windows Version ${::operatingsystemrelease}")
     }
-  }
-
-  exec { "Install-${name}-SSLCert":
-    provider  => powershell,
-    command   => "${script_dir}/import-${name}.ps1",
-    onlyif    => "${script_dir}/inspect-${name}.ps1",
-    logoutput => true,
-    require   => [ File["inspect-${name}-certificate.ps1"], File["import-${name}-certificate.ps1"] ],
   }
 }
