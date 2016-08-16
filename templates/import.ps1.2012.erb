@@ -4,9 +4,9 @@ if ($type -eq 'PFX') {
   $PlainPassword = "<%= @password -%>"
   $SecurePassword = $PlainPassword | ConvertTo-SecureString -AsPlainText -Force
 
-  Import-PfxCertificate -CertStoreLocation Cert:\<%= @root_store -%>\<%= @store_dir -%> -Exportable -Password $SecurePassword -FilePath <%= @location %>\<%= @name %>
+  $suppressed_output = Import-PfxCertificate -CertStoreLocation Cert:\<%= @root_store -%>\<%= @store_dir -%> -Exportable -Password $SecurePassword -FilePath <%= @location %>\<%= @name %>
 } else {
-  Import-Certificate -CertStoreLocation Cert:\<%= @root_store -%>\<%= @store_dir -%> -FilePath <%= @location %>\<%= @name %>
+  $suppressed_output = Import-Certificate -CertStoreLocation Cert:\<%= @root_store -%>\<%= @store_dir -%> -FilePath <%= @location %>\<%= @name %>
 }
 
 if (Test-Path Cert:\<%= @root_store -%>\<%= @store_dir -%>\<%= @fingerprint -%>) {
