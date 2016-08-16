@@ -78,7 +78,7 @@ define sslcertificate(
         command   => "${script_dir}/import-${name}.ps1",
         onlyif    => "if (Test-Path Cert:\\${root_store}\\${store_dir}\\${thumbprint}) { exit 1 } else { exit 0 }",
         logoutput => true,
-        require   => [ File["inspect-${name}-certificate.ps1"], File["import-${name}-certificate.ps1"] ],
+        require   => [ File["import-${name}-certificate.ps1"] ],
       }
     }
     '2008', '2008 R2': {
