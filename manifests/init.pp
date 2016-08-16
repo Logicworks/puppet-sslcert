@@ -73,18 +73,10 @@ define sslcertificate(
         source_permissions => ignore
       }
 
-      file { "import-${name}-certificate.ps1" :
-        ensure             => present,
-        path               => "${script_dir}/import-${name}.ps1",
-        content            => template('sslcertificate/import.ps1.2012.erb'),
-        require            => File[$script_dir],
-        source_permissions => ignore
-      }
-
       exec { "Install-${name}-SSLCert":
         provider  => powershell,
         command   => "${script_dir}/import-${name}.ps1",
-        unless    => "if (! Test-Path Cert:\\${root_store}\\${store_dir}\\${thumbprint}) { exit 1 }",
+        onlyif    => "if (Test-Path Cert:\\${root_store}\\${store_dir}\\${thumbprint}) { exit 1 } else { exit 0 }",
         logoutput => true,
         require   => [ File["inspect-${name}-certificate.ps1"], File["import-${name}-certificate.ps1"] ],
       }
@@ -109,7 +101,7 @@ define sslcertificate(
       exec { "Install-${name}-SSLCert":
         provider  => powershell,
         command   => "${script_dir}/import-${name}.ps1",
-        onlyif    => "${script_dir}/inspect-${name}.ps1",
+        onlyif    => "if (& ${script_dir}/inspect-${name}.ps1 ) { exit 0 } else { exit 1 }",
         logoutput => true,
         require   => [ File["inspect-${name}-certificate.ps1"], File["import-${name}-certificate.ps1"] ],
       }
