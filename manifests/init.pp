@@ -65,10 +65,10 @@ define sslcertificate(
 
   case $operatingsystemrelease {
     '2012', '2012 R2': {
-      file { "inspect-${name}-certificate.ps1" :
+      file { "import-${name}-certificate.ps1" :
         ensure             => present,
-        path               => "${script_dir}/inspect-${name}.ps1",
-        content            => template('sslcertificate/inspect.ps1.2012.erb'),
+        path               => "${script_dir}/import-${name}.ps1",
+        content            => template('sslcertificate/import.ps1.2012.erb'),
         require            => File[$script_dir],
         source_permissions => ignore
       }
