@@ -49,31 +49,56 @@
 #    thumbprint => '07E5C1AF7F5223CB975CC29B5455642F5570798B'
 #  }
 #
-define sslcertificate($password, $location, $thumbprint, $root_store = 'LocalMachine', $store_dir = 'My') {
+define sslcertificate(
+  $password,
+  $location,
+  $thumbprint,
+  $script_dir = 'c:/temp',
+  $root_store = 'LocalMachine',
+  $store_dir = 'My'
+) {
   validate_re($name, '^(.)+$',"Must pass name to ${module_name}[${title}]")
   validate_re($location, '^(.)+$',"Must pass location to ${module_name}[${title}]")
   validate_re($thumbprint, '^(.)+$', "Must pass a certificate thumbprint to ${module_name}[${title}]")
 
-  ensure_resource('file', 'C:\temp', { ensure => directory })
+  ensure_resource('file', $script_dir, { ensure => directory })
 
   file { "inspect-${name}-certificate.ps1" :
-    ensure  => present,
-    path    => "C:\\temp\\inspect-${name}.ps1",
-    content => template('sslcertificate/inspect.ps1.erb'),
-    require => File['C:\temp'],
+    ensure             => present,
+    path               => "${script_dir}/inspect-${name}.ps1",
+    content            => template('sslcertificate/inspect.ps1.erb'),
+    require            => File[$script_dir],
+    source_permissions => ignore
   }
 
-  file { "import-${name}-certificate.ps1" :
-    ensure  => present,
-    path    => "C:\\temp\\import-${name}.ps1",
-    content => template('sslcertificate/import.ps1.erb'),
-    require => File['C:\temp'],
+  case $operatingsystemrelease {
+    '2012', '2012 R2': {
+      file { "import-${name}-certificate.ps1" :
+        ensure             => present,
+        path               => "${script_dir}/import-${name}.ps1",
+        content            => template('sslcertificate/import.ps1.2012.erb'),
+        require            => File[$script_dir],
+        source_permissions => ignore
+      }
+    }
+    '2008', '2008 R2': {
+      file { "import-${name}-certificate.ps1" :
+        ensure             => present,
+        path               => "${script_dir}/import-${name}.ps1",
+        content            => template('sslcertificate/import.ps1.erb'),
+        require            => File[$script_dir],
+        source_permissions => ignore
+      }
+    }
+    default: {
+      fail("Unsupported Windows Version ${::operatingsystemrelease}")
+    }
   }
 
   exec { "Install-${name}-SSLCert":
     provider  => powershell,
-    command   => "c:\\temp\\import-${name}.ps1",
-    onlyif    => "c:\\temp\\inspect-${name}.ps1",
+    command   => "${script_dir}/import-${name}.ps1",
+    onlyif    => "${script_dir}/inspect-${name}.ps1",
     logoutput => true,
     require   => [ File["inspect-${name}-certificate.ps1"], File["import-${name}-certificate.ps1"] ],
   }

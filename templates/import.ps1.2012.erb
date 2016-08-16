@@ -1,0 +1,10 @@
+$type = "<%= @name %>".split('.')[-1].ToUpper()
+
+if ($type -eq 'PFX') {
+  $PlainPassword = "<%= @password -%>"
+  $SecurePassword = $PlainPassword | ConvertTo-SecureString -AsPlainText -Force
+
+  Import-PfxCertificate -CertStoreLocation Cert:\<%= @root_store -%>\<%= @store_dir -%> -Exportable -Password $SecurePassword -FilePath <%= @location %>\<%= @name %>
+} else {
+  Import-Certificate -CertStoreLocation Cert:\<%= @root_store -%>\<%= @store_dir -%> -FilePath <%= @location %>\<%= @name %>
+}
